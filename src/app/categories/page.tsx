@@ -2,19 +2,33 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { categories, categoryGroups } from "@/config/categories";
 import { site } from "@/config/site";
+import { fetchCollectionStats } from "@/lib/supabase";
+import { fillSeo } from "@/lib/seo.mjs";
 
-export const metadata: Metadata = {
-  title: "OnlyFans Categories by Size & Style",
-  description:
-    "Explore OnlyFans categories for every size and style, including big, huge, small, natural and enhanced creator collections.",
-  alternates: { canonical: "/categories" },
-  openGraph: {
-    title: "OnlyFans Categories by Size & Style | OnlyBoobs",
-    description:
-      "Browse creator collections by breast size, breast type and style—from small and natural to big and enhanced.",
-    url: "/categories",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const stats = await fetchCollectionStats();
+  const title =
+    fillSeo(
+      `{count} OnlyFans Models in ${categories.length} Boob Categories`,
+      stats,
+    ) ?? "OnlyFans Categories by Size & Style";
+  const description =
+    fillSeo(
+      `Browse {count} verified OnlyFans models across ${categories.length} categories: big, huge, natural, small, fake, MILF and more. {free} are free to follow. Updated {updated}.`,
+      stats,
+    ) ??
+    "Explore OnlyFans categories for every size and style, including big, huge, small, natural and enhanced creator collections.";
+  return {
+    title,
+    description,
+    alternates: { canonical: "/categories" },
+    openGraph: {
+      title: `${title} | OnlyBoobs`,
+      description,
+      url: "/categories",
+    },
+  };
+}
 
 const groupIcons = ["♡", "✦"];
 const sectionId = (label: string) =>

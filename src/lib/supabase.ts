@@ -222,6 +222,37 @@ export async function fetchCreators(
     })),
   };
 }
+export interface CollectionStats {
+  count: number;
+  free: number;
+  minPrice: number | null;
+  photos: number;
+  videos: number;
+  updated: string;
+}
+/** Live totals for page metadata; null when the creator database is unreachable. */
+export async function fetchCollectionStats(
+  category?: string,
+): Promise<CollectionStats | null> {
+  try {
+    const rows = (await loadInventory()).filter(
+      (c) => !category || c.categories.includes(category),
+    );
+    const paid = rows.flatMap((c) =>
+      c.subscribePrice ? [c.subscribePrice] : [],
+    );
+    return {
+      count: rows.length,
+      free: rows.filter((c) => c.subscribePrice === 0).length,
+      minPrice: paid.length ? Math.min(...paid) : null,
+      photos: rows.reduce((sum, c) => sum + (c.photosCount ?? 0), 0),
+      videos: rows.reduce((sum, c) => sum + (c.videosCount ?? 0), 0),
+      updated: inventory.generatedAt,
+    };
+  } catch {
+    return null;
+  }
+}
 export async function fetchCreatorsByUsernames(
   usernames: string[],
   revalidate = 3600,

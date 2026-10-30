@@ -3,13 +3,24 @@ import { Suspense } from "react";
 import Link from "next/link";
 import Directory from "@/components/Directory";
 import CreatorGridSkeleton from "@/components/CreatorGridSkeleton";
+import { fetchCollectionStats } from "@/lib/supabase";
+import { fillSeo } from "@/lib/seo.mjs";
 
-export const metadata: Metadata = {
-  title: "Best Free OnlyFans Models With Big Tits",
-  description:
-    "Discover free-subscription OnlyFans models with big tits. Browse worldwide creators in the OnlyBoobs Big Boobs collection.",
-  alternates: { canonical: "/free-onlyfans-titty-models" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const stats = await fetchCollectionStats("big-tits");
+  return {
+    title:
+      fillSeo("{free} Free Big Tits OnlyFans Models ($0 to Follow)", stats) ??
+      "Best Free OnlyFans Models With Big Tits",
+    description:
+      fillSeo(
+        "{free} OnlyFans models with big tits you can follow for $0, ranked by likes. Real, verified accounts with no subscription fee. Updated {updated}.",
+        stats,
+      ) ??
+      "Discover free-subscription OnlyFans models with big tits. Browse worldwide creators in the OnlyBoobs Big Boobs collection.",
+    alternates: { canonical: "/free-onlyfans-titty-models" },
+  };
+}
 
 export default function FreeCreators() {
   return (

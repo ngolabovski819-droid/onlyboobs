@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import { categories, getCategoryBySlug } from "@/config/categories";
 import { site } from "@/config/site";
 import inventory from "@/data/inventory.json";
+import { fetchCollectionStats } from "@/lib/supabase";
+import { fillSeo } from "@/lib/seo.mjs";
 import Directory, { type Query } from "@/components/Directory";
 import CreatorGridSkeleton from "@/components/CreatorGridSkeleton";
 import CategoryIntro from "@/components/CategoryIntro";
@@ -25,14 +27,19 @@ export async function generateMetadata({
   const count = inventory.creators.filter((c) =>
     (c.categories as string[]).includes(slug),
   ).length;
+  const stats = await fetchCollectionStats(slug);
+  const fallback = cat.seo?.heading ?? `${cat.label} OnlyFans Creators`;
+  const title = (cat.seo && fillSeo(cat.seo.title, stats)) ?? fallback;
+  const description =
+    (cat.seo && fillSeo(cat.seo.description, stats)) ?? cat.summary;
   return {
-    title: cat.seo?.title ?? `${cat.label} OnlyFans Creators`,
-    description: cat.seo?.description ?? cat.summary,
+    title,
+    description,
     alternates: { canonical: `/categories/${slug}` },
     openGraph: cat.seo
       ? {
-          title: `${cat.seo.title} | OnlyBoobs`,
-          description: cat.seo.description,
+          title: `${title} | OnlyBoobs`,
+          description,
           url: `/categories/${slug}`,
         }
       : undefined,

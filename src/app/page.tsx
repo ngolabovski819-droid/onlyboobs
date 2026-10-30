@@ -6,19 +6,27 @@ import CreatorGridSkeleton from "@/components/CreatorGridSkeleton";
 import CategoryBrowse from "@/components/CategoryBrowse";
 import Directory from "@/components/Directory";
 import FAQ from "@/components/FAQ";
+import { fetchCollectionStats } from "@/lib/supabase";
+import { fillSeo } from "@/lib/seo.mjs";
 export const revalidate = 300;
-export const metadata: Metadata = {
-  title: "Find OnlyFans Models with Beautiful Tits | OnlyBoobs",
-  description:
-    "Find OnlyFans models of every size and style, from big and busty to small, natural, and enhanced. Browse worldwide creator profiles and free or paid subscriptions.",
-  alternates: { canonical: "/" },
-  openGraph: {
-    title: "Find OnlyFans Models with Beautiful Tits | OnlyBoobs",
-    description:
-      "Discover OnlyFans models of every size and shape. Browse creator profiles by size, style and subscription price.",
-    url: "/",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const stats = await fetchCollectionStats();
+  const title =
+    fillSeo("OnlyFans Tits: {count} Real Models, Every Size | OnlyBoobs", stats) ??
+    "Find OnlyFans Models with Beautiful Tits | OnlyBoobs";
+  const description =
+    fillSeo(
+      "{count} OnlyFans models with big, huge, natural, small and enhanced tits. {free} free to follow, all real, verified accounts. Updated {updated}.",
+      stats,
+    ) ??
+    "Find OnlyFans models of every size and style, from big and busty to small, natural, and enhanced. Browse worldwide creator profiles and free or paid subscriptions.";
+  return {
+    title,
+    description,
+    alternates: { canonical: "/" },
+    openGraph: { title, description, url: "/" },
+  };
+}
 const faqs = [
   {
     q: "How can I find OnlyFans models by breast size?",

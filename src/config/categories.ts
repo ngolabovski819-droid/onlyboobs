@@ -4,6 +4,7 @@ export interface CategoryFAQ {
   a: string;
 }
 export interface CategorySeo {
+  /** title and description may use {count}, {free}, {minPrice}, {photos}, {videos}, {updated} and {year}; see fillSeo. */
   title: string;
   description: string;
   heading: string;

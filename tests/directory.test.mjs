@@ -3,11 +3,15 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { selectCreators } from "../src/lib/directory.mjs";
 import { classifyProfile } from "../src/lib/classification.mjs";
+import { fillSeo } from "../src/lib/seo.mjs";
 const rules = JSON.parse(
   fs.readFileSync(
     new URL("../src/data/category-rules.json", import.meta.url),
     "utf8",
   ),
+);
+const inventory = JSON.parse(
+  fs.readFileSync(new URL("../src/data/inventory.json", import.meta.url), "utf8"),
 );
 const profile = (about) => ({
   id: 1,
@@ -138,8 +142,23 @@ test("every launch category has distinct SEO metadata and a four-sentence intro"
   const titles = new Set();
   for (const category of rules) {
     assert(category.seo, `${category.slug} is missing SEO metadata`);
-    assert(category.seo.title.length <= 60, `${category.slug} title is too long`);
-    assert(category.seo.description.length <= 160, `${category.slug} description is too long`);
+    const count = inventory.creators.filter((c) =>
+      c.categories.includes(category.slug),
+    ).length;
+    // Worst case widths: every creator free, multi-million media totals.
+    const stats = {
+      count,
+      free: count,
+      minPrice: 4.99,
+      photos: 9_999_999,
+      videos: 9_999_999,
+      updated: inventory.generatedAt,
+    };
+    const title = fillSeo(category.seo.title, stats);
+    const description = fillSeo(category.seo.description, stats);
+    assert.doesNotMatch(`${title} ${description}`, /\{\w+\}/, `${category.slug} has an unknown token`);
+    assert((title + " | OnlyBoobs").length <= 60, `${category.slug} title is too long`);
+    assert(description.length <= 160, `${category.slug} description is too long`);
     assert(!titles.has(category.seo.title), `${category.slug} title is duplicated`);
     titles.add(category.seo.title);
     assert.equal(
